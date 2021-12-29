@@ -1,18 +1,11 @@
 const express = require('express');
 
 const axios  = require('axios');
-const { doesNotMatch } = require('assert');
+const _ = require('lodash');
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-
-// const getMockData = async () => {
-//   const response = await axios.get('https://api.hatchways.io/assessment/blog/posts?tag=tech');
-//   console.log(response.data);
-// } 
-
-// getMockData();
 
 app.get('/api/ping', (req, res) => {
   res.status(200).send({"success": true});
@@ -26,7 +19,7 @@ app.get('/api/posts', async (req,res) => {
   if (req.query.tags.includes(',')) {
     const tagArray = req.query.tags.split(',');
     
-    const posts = [];
+    let posts = [];
     // EUREKA!! Concurrently handled them all by mapping axios requests
     const axiosRequests = tagArray.map((tag) =>
       axios.get(`https://api.hatchways.io/assessment/blog/posts?tag=${tag}` )
@@ -35,10 +28,10 @@ app.get('/api/posts', async (req,res) => {
     try {
       const axiosResults = await Promise.all(axiosRequests);
       axiosResults.map((result) => {
-        posts.push(result.data.posts);
+        posts = checkforDuplicatePosts(posts, result.data.posts);
       })
     } catch (err) {
-      res.status(500).send(e.message);
+      res.status(500).send(err.message);
     }
     
     return res.status(200).send({posts});
@@ -52,6 +45,27 @@ app.get('/api/posts', async (req,res) => {
     }
   } 
 });
+// we need to compare each object within the posts, the best way to compare an object is Lodash, I've fought and argued about trying to not use a nested loop, but for now it'll have to do.
+const checkforDuplicatePosts =(oldPosts, newPosts) => {
+  for (let i = 0; i < newPosts.length; i++) {
+    duplicatePost = false;
+
+    for (let j = 0; j < oldPosts.length; j++) {
+      if (_.isEqual(oldPosts[j], newPosts[i])) {
+        duplicatePost = true;
+      }
+    }
+
+    
+    if (!duplicatePost) {
+      oldPosts.push(newPosts[i]);
+    }
+  }
+
+  return oldPosts;
+}
+
+
 
 
 
