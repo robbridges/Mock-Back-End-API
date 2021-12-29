@@ -13,17 +13,16 @@ router.get('/api/posts', async (req,res) => {
   const directions = ['asc', 'desc', undefined];
   // the only options that should be passed to sort, we'll throw another error if it's not included in our array
   const sortKeywords = ['popularity', 'likes', 'reads', 'id', undefined];
-
+  // below are the error catches, if no tag is given, you get an error, if the wrong direction is given, you get an error. Same with sort keyword.
+  if (!req.query.tags) {
+    return res.status(400).send({"error": "Tags parameter is required"});
+  } 
   if (!directions.includes(req.query.direction)) {
     return res.status(400).send({error: "Direction parameter must be asc or desc"});
   }
 
   if (!sortKeywords.includes(req.query.sortBy)) {
     return res.status(400).send({error: "sortBy Parameter is invalid, please choose between popularity, likes, reads, or id"})
-  }
-
-  if (!req.query.tags) {
-    return res.status(400).send({"error": "Tags parameter is required"});
   }
     /* if the user gives a comma seperated tag, we need to handle it with concurrent api requests, I removed the else catch if one tag was supplied. 
     we're actually taking of everything in this one. */
