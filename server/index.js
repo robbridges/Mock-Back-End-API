@@ -28,12 +28,20 @@ app.get('/api/posts', async (req,res) => {
     try {
       const axiosResults = await Promise.all(axiosRequests);
       axiosResults.map((result) => {
+        // we are checking for duplicates before we add the posts to the new post array, It works pretty good so far
         posts = checkforDuplicatePosts(posts, result.data.posts);
       })
     } catch (err) {
-      res.status(500).send(err.message);
+      return res.status(500).send(err.message);
     }
     
+    // if the query param desc is passed we sort the posts the ports descending based on the field in the query param.
+    if (req.query.direction === 'desc') {
+      posts = posts.sort((a, b) => (b[req.query.sortBy] < a[req.query.sortBy]) ? -1 : 1)
+    } else {
+      posts = posts.sort((a, b) => (b[req.query.sortBy] < a[req.query.sortBy]) ? 1 : -1)
+    }
+
     return res.status(200).send({posts});
   // user has only given one tag, we can handle it as we normally would.   
   } else {
@@ -46,23 +54,23 @@ app.get('/api/posts', async (req,res) => {
   } 
 });
 // we need to compare each object within the posts, the best way to compare an object is Lodash, I've fought and argued about trying to not use a nested loop, but for now it'll have to do.
-const checkforDuplicatePosts =(oldPosts, newPosts) => {
+const checkforDuplicatePosts =(existingPosts, newPosts) => {
   for (let i = 0; i < newPosts.length; i++) {
     duplicatePost = false;
 
-    for (let j = 0; j < oldPosts.length; j++) {
-      if (_.isEqual(oldPosts[j], newPosts[i])) {
+    for (let j = 0; j < existingPosts.length; j++) {
+      if (_.isEqual(existingPosts[j], newPosts[i])) {
         duplicatePost = true;
       }
     }
 
     
     if (!duplicatePost) {
-      oldPosts.push(newPosts[i]);
+      existingPosts.push(newPosts[i]);
     }
   }
 
-  return oldPosts;
+  return existingPosts;
 }
 
 
