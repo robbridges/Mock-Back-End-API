@@ -51,7 +51,7 @@ app.get('/api/posts', async (req,res) => {
     
     // if the query param desc is passed we sort the posts the ports descending based on the field in the query param.
     if (req.query.direction === 'desc') {
-      posts = posts.sort((a, b) => (b[req.query.sortBy] < a[req.query.sortBy]) ? 1 : -1)
+      posts = posts.sort((a, b) => (b[req.query.sortBy] > a[req.query.sortBy]) ? 1 : -1)
     } else {
       posts = posts.sort((a, b) => (b[req.query.sortBy] < a[req.query.sortBy]) ? 1 : -1)
     }
