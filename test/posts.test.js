@@ -12,7 +12,7 @@ test('Should get correct response from server when getting api/ping route', asyn
   await request(app).get('/api/ping')
   .expect(200)
 })
-
+//test test test
 test('Should get correct response body from server when getting api/ping route', async () => {
    await request(app).get('/api/ping')
    .expect({success: true});
